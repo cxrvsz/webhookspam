@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Webhook Message Sender</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+
+    body {
+      font-family: 'Poppins', Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background: linear-gradient(135deg, #4e54c8, #8f94fb);
+    }
+
+    .container {
+      width: 350px;
+      padding: 20px;
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+      text-align: center;
+    }
+
+    .container h1 {
+      font-size: 24px;
+      color: #333;
+      margin-bottom: 20px;
+      font-weight: 600;
+    }
+
+    .input-group {
+      margin-bottom: 15px;
+    }
+
+    .input-group label {
+      display: block;
+      font-size: 14px;
+      font-weight: 500;
+      color: #555;
+      margin-bottom: 5px;
+    }
+
+    .input-group input {
+      width: 90%;
+      padding: 8px 12px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 14px;
+      outline: none;
+      transition: all 0.3s ease;
+      margin: 0 auto;
+      display: block;
+    }
+
+    .input-group input:hover {
+      border-color: #4e54c8;
+      background-color: #f0f0f5;
+    }
+
+    .input-group input:focus {
+      border-color: #4e54c8;
+      box-shadow: 0 0 8px rgba(78, 84, 200, 0.2);
+    }
+
+    .toggle-group {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 10px 0;
+    }
+
+    .toggle-group label {
+      font-size: 14px;
+      font-weight: 500;
+      color: #555;
+    }
+
+    /* Toggle Switch Styling */
+    .toggle {
+      position: relative;
+      display: inline-block;
+      width: 40px;
+      height: 20px;
+    }
+
+    .toggle input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      transition: 0.4s;
+      border-radius: 20px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 14px;
+      width: 14px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: 0.4s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background-color: #4e54c8;
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(20px);
+    }
+
+    .button {
+      width: 90%;
+      padding: 12px;
+      font-size: 16px;
+      color: white;
+      background: #4e54c8;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      margin: 0 auto;
+      display: block;
+    }
+
+    .button:hover {
+      background: #3d44b6;
+    }
+
+    .status {
+      margin-top: 15px;
+      font-size: 14px;
+      color: #555;
+    }
+
+    .status span {
+      font-weight: 600;
+      color: #333;
+    }
+
+    .footer {
+      margin-top: 20px;
+      font-size: 12px;
+      color: #aaa;
+    }
+
+    .footer a {
+      color: #4e54c8;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Webhook Message Sender</h1>
+
+    <div class="input-group">
+      <label for="webhookUrl">Webhook URL</label>
+      <input type="text" id="webhookUrl" placeholder="Enter your Discord webhook URL">
+    </div>
+
+    <div class="input-group">
+      <label for="messageContent">Message Content</label>
+      <input type="text" id="messageContent" placeholder="Enter your message content">
+    </div>
+
+    <div class="input-group">
+      <label for="inviteLink">Discord Invite Link (Optional)</label>
+      <input type="text" id="inviteLink" placeholder="e.g., https://discord.gg/example">
+    </div>
+
+    <div class="input-group">
+      <label for="autoSendDelay">Auto Send Delay (ms)</label>
+      <input type="number" id="autoSendDelay" placeholder="e.g., 500" min="1">
+    </div>
+
+    <div class="toggle-group">
+      <label for="autoSend">Enable Auto Sending</label>
+      <label class="toggle">
+        <input type="checkbox" id="autoSend">
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <button class="button" id="sendButton">Send Message</button>
+
+    <div class="toggle-group" style="margin-top: 20px;">
+      <label for="pingEveryone">Ping @everyone</label>
+      <label class="toggle">
+        <input type="checkbox" id="pingEveryone">
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <p class="status" id="status"></p>
+    <p class="footer">This is made by cxrvs. Join the discord for more! <a href="https://discord.gg/yAc8XehTBd">discord.gg/yAc8XehTBd</a>.</p>
+  </div>
+
+  <script>
+    // Get DOM elements
+    const webhookUrlInput = document.getElementById("webhookUrl");
+    const messageContentInput = document.getElementById("messageContent");
+    const inviteLinkInput = document.getElementById("inviteLink");
+    const pingEveryoneCheckbox = document.getElementById("pingEveryone");
+    const autoSendDelayInput = document.getElementById("autoSendDelay");
+    const autoSendCheckbox = document.getElementById("autoSend");
+    const sendButton = document.getElementById("sendButton");
+    const status = document.getElementById("status");
+
+    let autoSendInterval = null;
+
+    // Function to send a message
+    function sendMessage() {
+      const webhookUrl = webhookUrlInput.value;
+      const messageContent = messageContentInput.value;
+      const inviteLink = inviteLinkInput.value;
+      const pingEveryone = pingEveryoneCheckbox.checked;
+
+      // Validate inputs
+      if (!webhookUrl) {
+        status.innerHTML = "Please enter a valid <span>Webhook URL</span>.";
+        return;
+      }
+
+      if (!messageContent) {
+        status.innerHTML = "Please enter a <span>message</span>.";
+        return;
+      }
+
+      status.textContent = "Sending message...";
+
+      // Add @everyone if ping is enabled
+      const fullMessageContent = pingEveryone
+        ? `@everyone ${messageContent}${inviteLink ? `\n\nJoin here: ${inviteLink}` : ''}`
+        : `${messageContent}${inviteLink ? `\n\nJoin here: ${inviteLink}` : ''}`;
+
+      // Payload to send
+      const messagePayload = {
+        content: fullMessageContent
+      };
+
+      // Send POST request to the webhook
+      fetch(webhookUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(messagePayload)
+      })
+        .then(response => {
+          if (response.ok) {
+            status.innerHTML = "Message sent <span>successfully!</span>";
+          } else {
+            status.innerHTML = `Failed to send message. Status code: <span>${response.status}</span>`;
+          }
+        })
+        .catch(error => {
+          console.error("Error sending message:", error);
+          status.innerHTML = "An <span>error</span> occurred. Check the console for details.";
+        });
+    }
+
+    // Manual Send Button Event Listener
+    sendButton.addEventListener("click", sendMessage);
+
+    // Auto Sending Toggle
+    autoSendCheckbox.addEventListener("change", function () {
+      if (autoSendCheckbox.checked) {
+        const delay = parseInt(autoSendDelayInput.value, 10);
+
+        if (isNaN(delay) || delay < 1) {
+          status.innerHTML = "Please enter a valid <span>delay</span> greater than 0 ms.";
+          autoSendCheckbox.checked = false; // Disable auto sending
+          return;
+        }
+
+        status.innerHTML = `Auto sending enabled. Messages will be sent every <span>${delay} ms</span>.`;
+        autoSendInterval = setInterval(sendMessage, delay); // Send messages at the specified interval
+      } else {
+        status.textContent = "Auto sending disabled.";
+        clearInterval(autoSendInterval);
+      }
+    });
+  </script>
+</body>
+</html>
